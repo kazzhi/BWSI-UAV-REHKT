@@ -30,45 +30,13 @@ enum RobotState {
 
 // Define the sequence of states for the state machine
 RobotState stateSequence[] = { 
-  //for example track in the rules
-  FORWARD_25,
-  TURN_RIGHT,
-  FORWARD_50,
-  TURN_LEFT,
-  FORWARD_50,
-  TURN_LEFT,
   FORWARD_100,
-  TURN_LEFT,
-  FORWARD_50,
-  TURN_RIGHT,
-  FORWARD_50, //gate zone a
-  BACKWARD_50,
-  TURN_LEFT,
-  BACKWARD_150,
-  TURN_RIGHT,
-  BACKWARD_100, //passes through gate c
-  TURN_RIGHT,
-  BACKWARD_50,
-  TURN_LEFT,
-  BACKWARD_50,
-  TURN_LEFT,
-  BACKWARD_25, // gate zone d
-  FORWARD_25,
-  TURN_RIGHT,
-  FORWARD_50,
-  TURN_LEFT,
-  FORWARD_100,
-  TURN_LEFT,
-  FORWARD_50,
-  TURN_LEFT,
-  FORWARD_50, //gate zone b, last
-  BACKWARD_50,
-  TURN_RIGHT,
-  BACKWARD_50,
-  TURN_LEFT,
-  FORWARD_150,
-  TURN_LEFT,
-  FORWARD_100, //to target
+  // TURN_LEFT,
+  // FORWARD_100,
+  // TURN_LEFT,
+  // FORWARD_100,
+  // TURN_LEFT,
+  // FORWARD_100,
   STOP 
 };
 
@@ -85,8 +53,8 @@ const int leftEncoderPin = A0;
 const int rightEncoderPin = A1;
 
 // Gear ratio and wheel properties
-const float gearRatio = 3.0;                                                  // 1 spin of the encoder results in 3 spins of the wheel
-const float wheelDiameterInches = 1.375;                                      // Wheel diameter in inches
+const float gearRatio = 1.0;                                                  // 1 spin of the encoder results in 3 spins of the wheel
+const float wheelDiameterInches = 2.75591;                                      // Wheel diameter in inches
 const float wheelCircumference = wheelDiameterInches * 2.54 * 3.14159265359;  // Circumference of the wheel in centimeters
 
 bool leftActionCompleted = false;
@@ -106,18 +74,8 @@ bool firstLoopRight = true;
 
 // Control parameters
 const float kPLeftDrive = 0.011;  // Proportional gain for deceleration
-
-const float kFLeftForwardDeadzone = 0.044;
-const float kFLeftBackwardDeadzone = 0.022;
-const float kFRightForwardDeadzone = 0.066;
-const float kFRightBackwardDeadzone = 0.000;
-
-const float kFLeftDecel = 0.00;
-const float kFRightDecel = 0.00;
-
 const float kPRightDrive = 0.011;
-
-const float errorTolerance = 0.15;
+const float errorTolerance = 0.5;
 
 const float maxPower = 1;  // Maximum power
 const float leftPowerScalar = 1;
@@ -398,19 +356,8 @@ switch (stateSequence[currentStateIndex]) {
   }
 
   // Set the servos to the calculated power
-  if (leftPower > 0) {
-    leftPower += kFLeftForwardDeadzone;
-  } else if (leftPower < 0) {
-    leftPower -= kFLeftBackwardDeadzone;
-  }
-  leftWheel.write((90 + (leftPower * 90)) * leftPowerScalar);
-
-  if (rightPower > 0) {
-    rightPower += kFRightForwardDeadzone;
-  } else if (rightPower < 0) {
-    rightPower -= kFRightBackwardDeadzone;
-  }
-  rightWheel.write((90 + (rightPower * 90)) * rightPowerScalar);
+  leftWheel.write(90 + (leftPower * 90));
+  rightWheel.write(90 + (rightPower * 90));
 
   // --- Output Data for Serial Plotter ---
   Serial.print(cumulativeLeftDistance, 2);  // Print left cumulative distance

@@ -73,8 +73,8 @@ bool firstLoopLeft = true;
 bool firstLoopRight = true;
 
 // Control parameters
-const float kPLeftDrive = 0.011;  // Proportional gain for deceleration
-const float kPRightDrive = 0.011;
+const float kPLeftDrive = 0.025;  // Proportional gain for deceleration
+const float kPRightDrive = 0.025;
 const float errorTolerance = 0.5;
 
 const float maxPower = 1;  // Maximum power
@@ -83,8 +83,8 @@ const float rightPowerScalar = 1;
 const float accelerationStep = 0.04;  // Step for uniform acceleration
 
 // PID parameters for the last few cm
-double leftkP = 0.006, leftkI = 0.0000, leftkD = 0.0000110;        // Left wheel PID parameters
-double rightkP = 0.006, rightkI = 0.0000, rightkD = 0.0000104;  // Right wheel PID parameters
+double leftkP = 0.025, leftkI = 0.0000, leftkD = 0.0000;        // Left wheel PID parameters
+double rightkP = 0.025, rightkI = 0.0000, rightkD = 0.0000;  // Right wheel PID parameters
 
 PID leftPID(&leftInput, &leftOutput, &leftSetpoint, leftkP, leftkI, leftkD, DIRECT);
 PID rightPID(&rightInput, &rightOutput, &rightSetpoint, rightkP, rightkI, rightkD, DIRECT);

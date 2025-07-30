@@ -276,7 +276,7 @@ switch (stateSequence[currentStateIndex]) {
     leftAngleDifference -= 360.0;
   }
   float leftDistanceTraveled = (leftAngleDifference / 360.0) * wheelCircumference;
-  cumulativeLeftDistance += leftDistanceTraveled;
+  cumulativeLeftDistance -= leftDistanceTraveled;
   previousLeftAngle = leftWheelAngle;
 
   // --- Right Wheel ---
@@ -297,7 +297,7 @@ switch (stateSequence[currentStateIndex]) {
     rightAngleDifference -= 360.0;
   }
   float rightDistanceTraveled = -(rightAngleDifference / 360.0) * wheelCircumference;
-  cumulativeRightDistance += rightDistanceTraveled;
+  cumulativeRightDistance -= rightDistanceTraveled;
   previousRightAngle = rightWheelAngle;
 
   // Calculate the error (distance remaining to target)

@@ -30,10 +30,11 @@ enum RobotState {
 
 // Define the sequence of states for the state machine
 RobotState stateSequence[] = { 
-  FORWARD_100,
-  TURN_LEFT,
-  BACKWARD_100,
-  TURN_RIGHT,
+  // FORWARD_100,
+  // TURN_LEFT,
+  // BACKWARD_100,
+  // TURN_RIGHT,
+
   // FORWARD_100,
   // TURN_LEFT,
   // FORWARD_100,
@@ -43,6 +44,7 @@ RobotState stateSequence[] = {
 // Servo objects for controlling the wheels
 Servo leftWheel;
 Servo rightWheel;
+Servo latch;
 
 // PID control variables
 double leftInput, leftOutput, leftSetpoint = 0;
@@ -166,6 +168,10 @@ void setup() {
   // Attach the servos to the specified pins
   leftWheel.attach(3);   // attaches the left wheel servo on pin 3
   rightWheel.attach(2);  // attaches the right wheel servo on pin 2
+  latch.attach(30);
+
+  latch.write(70);
+  //latch.write(100);
 
   // Initialize the PID controllers
   leftPID.SetMode(AUTOMATIC);

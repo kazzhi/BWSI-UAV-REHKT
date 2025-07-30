@@ -31,9 +31,9 @@ enum RobotState {
 // Define the sequence of states for the state machine
 RobotState stateSequence[] = { 
   FORWARD_100,
-  // TURN_LEFT,
-  // FORWARD_100,
-  // TURN_LEFT,
+  TURN_LEFT,
+  BACKWARD_100,
+  TURN_RIGHT,
   // FORWARD_100,
   // TURN_LEFT,
   // FORWARD_100,

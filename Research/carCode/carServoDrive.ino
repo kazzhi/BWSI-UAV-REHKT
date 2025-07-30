@@ -1,8 +1,6 @@
 #include <Servo.h>
 #include <PID_v1.h>
 
-
-// ALWAYS CHECK SERVO WIRING!!!
 // Define the states for the state machine
 enum RobotState {
   FORWARD_25,
@@ -103,8 +101,7 @@ unsigned long accelerationStartTime = 0;
 int currentStateIndex = 0;
 
 // Target distances for each state
-// float forwardTargetDist = 50.0;  // Move forward target distance in cm
-float turnWheelTargetDist = 8; // Turn target distance in cm, original 9.58
+float turnWheelTargetDist = 12; // Turn target distance in cm, UNTESTED
 
 void resetVariables() {
   leftActionCompleted = false;

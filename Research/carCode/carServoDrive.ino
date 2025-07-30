@@ -1,6 +1,8 @@
 #include <Servo.h>
 #include <PID_v1.h>
 
+
+// ALWAYS CHECK SERVO WIRING!!!
 // Define the states for the state machine
 enum RobotState {
   FORWARD_25,
@@ -31,12 +33,12 @@ enum RobotState {
 // Define the sequence of states for the state machine
 RobotState stateSequence[] = { 
   FORWARD_100,
-  TURN_LEFT,
-  FORWARD_100,
-  TURN_LEFT,
-  FORWARD_100,
-  TURN_LEFT,
-  FORWARD_100,
+  // TURN_LEFT,
+  // FORWARD_100,
+  // TURN_LEFT,
+  // FORWARD_100,
+  // TURN_LEFT,
+  // FORWARD_100,
   STOP 
 };
 

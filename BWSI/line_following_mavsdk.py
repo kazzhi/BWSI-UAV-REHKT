@@ -32,13 +32,13 @@ drone = System() # Define the drone system
 camera = None
 
 #PID Constants
-KP_X = 0.0
-KP_Y = 0.0
-KP_W_Z = 0.0
+KP_X = 0.001
+KP_Y = 0.001
+KP_W_Z = 0.005
 
-KD_X = 0.0
-KD_Y = 0.0
-KD_W_Z = 0.0
+KD_X = 0.001
+KD_Y = 0.001
+KD_W_Z = 0.005
 
 prev_x_error = 0
 prev_y_error = 0

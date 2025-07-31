@@ -30,14 +30,14 @@ enum RobotState {
 
 // Define the sequence of states for the state machine
 RobotState stateSequence[] = { 
-  FORWARD_100,
+  FORWARD_50,
   TURN_LEFT,
-  FORWARD_100,
-  TURN_RIGHT,
-
-  // FORWARD_100,
-  // TURN_LEFT,
-  // FORWARD_100,
+  FORWARD_50,
+  TURN_LEFT,
+  FORWARD_50,
+  TURN_LEFT,
+  FORWARD_50,
+  TURN_LEFT,
   STOP 
 };
 
@@ -103,7 +103,7 @@ unsigned long accelerationStartTime = 0;
 int currentStateIndex = 0;
 
 // Target distances for each state
-float turnWheelTargetDist = 12; // Turn target distance in cm, UNTESTED
+float turnWheelTargetDist = 24; // Turn target distance in cm, UNTESTED
 
 void resetVariables() {
   leftActionCompleted = false;

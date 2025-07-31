@@ -144,7 +144,11 @@ def get_velocity(vx, vy, x, y):
 
     vels__bd = R_dc2bd @ v4
 
-    return vels__bd[0], vels__bd[1], vels__bd[2]
+    vx = min(max(vels__bd[0],-MAX_X_SPEED), MAX_X_SPEED)
+    vy = min(max(vels__bd[1],-MAX_Y_SPEED), MAX_Y_SPEED)
+    wz = min(max(vels__bd[2],-MAX_YAW_SPEED), MAX_YAW_SPEED)
+
+    return vx, vy, wz
 
 
 """

@@ -30,10 +30,10 @@ enum RobotState {
 
 // Define the sequence of states for the state machine
 RobotState stateSequence[] = { 
-  // FORWARD_100,
-  // TURN_LEFT,
-  // BACKWARD_100,
-  // TURN_RIGHT,
+  FORWARD_100,
+  TURN_LEFT,
+  FORWARD_100,
+  TURN_RIGHT,
 
   // FORWARD_100,
   // TURN_LEFT,
@@ -85,8 +85,8 @@ const float rightPowerScalar = 1;
 const float accelerationStep = 0.04;  // Step for uniform acceleration
 
 // PID parameters for the last few cm
-double leftkP = 0.025, leftkI = 0.0000, leftkD = 0.0000;        // Left wheel PID parameters
-double rightkP = 0.025, rightkI = 0.0000, rightkD = 0.0000;  // Right wheel PID parameters
+double leftkP = 0.05, leftkI = 0.0000, leftkD = 0.0000;        // Left wheel PID parameters
+double rightkP = 0.05, rightkI = 0.0000, rightkD = 0.0000;  // Right wheel PID parameters
 
 PID leftPID(&leftInput, &leftOutput, &leftSetpoint, leftkP, leftkI, leftkD, DIRECT);
 PID rightPID(&rightInput, &rightOutput, &rightSetpoint, rightkP, rightkI, rightkD, DIRECT);
@@ -170,8 +170,8 @@ void setup() {
   rightWheel.attach(2);  // attaches the right wheel servo on pin 2
   latch.attach(30);
 
-  latch.write(70);
-  //latch.write(100);
+  latch.write(71);
+  //latch.write(81);
 
   // Initialize the PID controllers
   leftPID.SetMode(AUTOMATIC);

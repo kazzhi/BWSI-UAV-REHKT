@@ -15,10 +15,10 @@ from picamera2 import Picamera2
 ###########
 #CONSTANTS#
 ###########
-MAX_YAW_SPEED = 90.0 # degrees per second, positive facking up
-MAX_X_SPEED = 1.0 # meters per second, forward
-MAX_Y_SPEED = 1.0 # meters per second, right
-MAX_Z_SPEED = 1.0 # meters per second, down
+MAX_YAW_SPEED = 45.0 # degrees per second, positive facking up
+MAX_X_SPEED = 0.5 # meters per second, forward
+MAX_Y_SPEED = 0.5 # meters per second, right
+MAX_Z_SPEED = 0.5 # meters per second, down
 
 TAKEOFF_ALTITUDE = 1.0 # meters
 TAKEOFF_TIME = 10 # seconds

@@ -49,6 +49,8 @@ prev_y_error = 0
 prev_z_error = 0
 prev_angle_error = 0
 
+latest_altitude = None
+
 LOW = np.array([250, 250, 250])  # Lower image thresholding bound
 HI = np.array([255, 255, 255])   # Upper image thresholding bound
 
@@ -173,7 +175,8 @@ def get_velocity(vx, vy, x, y):
     return float(vx), float(vy), float(wz)
 
 def get_z_velocity():
-
+    if latest_altitude is None:
+        return 0.0
     error = TAKEOFF_ALTITUDE - latest_altitude.altitude_relative_m
     vz = KP_Z * error
     vz += KD_Z * (error-prev_z_error)/LOOP_TIME

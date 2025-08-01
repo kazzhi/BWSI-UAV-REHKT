@@ -3,7 +3,7 @@ import numpy as np
 import math
 from mavsdk import System
 from mavsdk import offboard
-from mavsdk.offboard import VelocityBodyYawspeed, PositionNedYaw, OffboardError
+from mavsdk.offboard import VelocityBodyYawspeed, OffboardError
 import time
 import cv2
 from picamera2 import Picamera2
@@ -217,8 +217,8 @@ async def run():
     # await asyncio.sleep(TAKEOFF_TIME) # Pause for 8 seconds...
 
     print("Setting position setpoint for offboard start...")
-    await drone.offboard.set_position_ned(
-        PositionNedYaw(north_m=0.0, east_m=0.0, down_m=0.0, yaw_deg=0.0)
+    await drone.offboard.set_velocity_body(
+        VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=-0.1, yawspeed_deg_s=0.0)
     )
     try:
         await drone.offboard.start()
@@ -245,17 +245,9 @@ async def run():
         vx, vy, x, y = result
         vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)
 
-        position_ned = await drone.telemetry.position_velocity_ned()
-        yaw = await drone.telemetry.heading()
-
-        north_pos = position_ned.position.north_m + vel_x * 0.5
-        east_pos = position_ned.position.east_m + vel_y * 0.5
-        down_pos = -TAKEOFF_ALTITUDE # or something; can change later if AR tags
-        yaw = yaw + yaw_s * 0.5
-
         print(f"Forward velocity: {vel_x}, Right velocity: {vel_y}, Yaw speed: {yaw_s}")
-        await drone.offboard.set_position_ned(
-            PositionNedYaw(north_m=north_pos, east_m=east_pos, down_m=down_pos, yaw_deg=yaw)
+        await drone.offboard.set_velocity_body(
+            VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=0.0, yawspeed_deg_s=yaw_s)
         )
         await asyncio.sleep(0.5)
     camera.stop_recording()

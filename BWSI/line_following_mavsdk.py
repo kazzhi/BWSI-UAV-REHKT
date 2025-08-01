@@ -48,9 +48,6 @@ prev_x_error = 0
 prev_y_error = 0
 prev_angle_error = 0
 
-latest_position = None
-latest_heading = None
-
 LOW = np.array([250, 250, 250])  # Lower image thresholding bound
 HI = np.array([255, 255, 255])   # Upper image thresholding bound
 
@@ -63,18 +60,7 @@ R_dc2bd = np.array([[0.0, 1.0, 0.0, 0.0],
                       [0.0, 0.0, 0.0, 1.0]]) 
 
 ############
-async def subscribe_position(drone):
-    """Subscribes to position updates and updates the global variable."""
-    global latest_position
-    async for position in drone.telemetry.position():
-        latest_position = position
 
-
-async def subscribe_heading(drone):
-    """Subscribes to heading updates and updates the global variable."""
-    global latest_heading
-    async for heading in drone.telemetry.heading():
-        latest_heading = heading
 
 def pid(error, angle_error):
         global prev_x_error, prev_y_error, prev_angle_error
@@ -259,15 +245,8 @@ async def run():
         vx, vy, x, y = result
         vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)
 
-        if latest_position is None:
-            print("No position data available. Skipping...")
-            continue
-        if latest_heading is None:
-            print("No heading data available. Skipping...")
-            continue
-
-        position_ned = latest_position
-        yaw = latest_heading
+        position_ned = await drone.telemetry.position_velocity_ned()
+        yaw = await drone.telemetry.heading()
 
         north_pos = position_ned.position.north_m + vel_x * 0.5
         east_pos = position_ned.position.east_m + vel_y * 0.5

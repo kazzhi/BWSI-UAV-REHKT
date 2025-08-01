@@ -31,6 +31,8 @@ EXTEND = 100 # Number of pixels forward to extrapolate the line
 drone = System() # Define the drone system
 camera = None
 
+LOOP_TIME = 0.05
+
 #PID Constants
 KP_X = 0.001
 KP_Y = 0.001
@@ -72,8 +74,8 @@ def pid(error, angle_error):
         vx = KP_X * error[0]
         vy = KP_Y * error[1]
 
-        vx += KD_X * (error[0]-prev_x_error)/0.1
-        vy += KD_Y * (error[1]-prev_y_error)/0.1
+        vx += KD_X * (error[0]-prev_x_error)/LOOP_TIME
+        vy += KD_Y * (error[1]-prev_y_error)/LOOP_TIME
 
         prev_x_error = error[0]
         prev_y_error = error[1]
@@ -81,7 +83,7 @@ def pid(error, angle_error):
         # Set angular velocity (yaw)
         wz = KD_W_Z * angle_error
 
-        wz += KD_W_Z * (angle_error-prev_angle_error)/0.1
+        wz += KD_W_Z * (angle_error-prev_angle_error)/LOOP_TIME
 
         prev_angle_error = angle_error
 
@@ -174,7 +176,7 @@ def get_z_velocity():
 
     error = TAKEOFF_ALTITUDE - latest_altitude.altitude_relative_m
     vz = KP_Z * error
-    vz += KD_Z * (error-prev_z_error)/0.1
+    vz += KD_Z * (error-prev_z_error)/LOOP_TIME
     prev_z_error = error
     return vz
 
@@ -259,7 +261,7 @@ async def run():
         await drone.offboard.set_velocity_body(
             VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=vel_z, yawspeed_deg_s=yaw_s)
         )
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)
 
 
     print("\nOperation finished! Landing...")

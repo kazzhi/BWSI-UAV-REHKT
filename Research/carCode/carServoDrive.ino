@@ -206,7 +206,7 @@ switch (stateSequence[currentStateIndex]) {
       break;
     case FORWARD_75:
       if (!delayExecuted) {
-        delay(30000);
+        delay(90000);
         delayExecuted = true;
         moveForward(100.0);
       }

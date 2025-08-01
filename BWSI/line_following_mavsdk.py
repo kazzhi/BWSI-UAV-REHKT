@@ -7,6 +7,8 @@ from mavsdk.offboard import VelocityBodyYawspeed, OffboardError
 import time
 import cv2
 from picamera2 import Picamera2
+from picamera2.encoders import H264Encoder
+from picamera2.outputs import FfmpegOutput 
 
 
 # wget https://github.com/mavlink/MAVSDK/releases/latest/download/mavsdk-server-linux-arm64
@@ -30,6 +32,8 @@ EXTEND = 100 # Number of pixels forward to extrapolate the line
 
 drone = System() # Define the drone system
 camera = None
+encoder = H264Encoder(bitrate=10_000_000, framerate=20)
+ffout = FfmpegOutput("-y -c:v copy cameraimgs/output.mp4")
 
 #PID Constants
 KP_X = 0.001
@@ -170,9 +174,9 @@ Maybe use mavlink camera?
 def initiate_cam():
     global camera
     try:
-        camera = Picamera2()
+        camera = Picamera2(1)
         # Change config if needed for cv2 processing
-        camera_config = camera.create_still_configuration(main={"size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
+        camera_config = camera.create_video_configuration(main={"format": "BGR888", "size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
         camera.configure(camera_config)
         camera.start()
         time.sleep(0.5)
@@ -223,7 +227,8 @@ async def run():
     # If line detected, computes the vx, vy, and yaw (PID Tuned)
     # Feeds them into velocity body yaw speed
     # waits 1 second
-
+    camera.start_recording(encoder, ffout)
+    DETECT = 0
     while True:
         print("\nStarting offboard calculation!")
         result = detect_line()
@@ -243,7 +248,7 @@ async def run():
             VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=0.0, yawspeed_deg_s=yaw_s)
         )
         await asyncio.sleep(0.5)
-
+    camera.stop_recording()
 
     print("\nOperation finished! Landing...")
     await drone.action.land()

@@ -54,7 +54,7 @@ R_dc2bd = np.array([[0.0, 1.0, 0.0, 0.0],
                       [-1.0, 0.0, 0.0, 0.0], 
                       [0.0, 0.0, 1.0, 0.0], 
                       [0.0, 0.0, 0.0, 1.0]]) 
-
+DETECT = 0
 ############
 
 
@@ -228,8 +228,12 @@ async def run():
         print("\nStarting offboard calculation!")
         result = detect_line()
         if not result:
+            DETECT += 1
             print("Unable to detect line")
-            continue
+            if DETECT >= 10:
+               break
+            else:
+               continue
         
         vx, vy, x, y = result
         vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)

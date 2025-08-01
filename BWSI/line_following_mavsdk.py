@@ -2,7 +2,8 @@ import asyncio
 import numpy as np
 import math
 from mavsdk import System
-from mavsdk import Offboard
+from mavsdk import offboard
+from mavsdk.offboard import VelocityBodyYawspeed, OffboardError
 import time
 import cv2
 from picamera2 import Picamera2
@@ -21,23 +22,22 @@ MAX_Y_SPEED = 0.5 # meters per second, right
 MAX_Z_SPEED = 0.5 # meters per second, down
 
 TAKEOFF_ALTITUDE = 1.0 # meters
-TAKEOFF_TIME = 10 # seconds
-
-IMAGE_WIDTH, IMAGE_HEIGHT = 640, 380 # pixels
+TAKEOFF_TIME = 8
+IMAGE_WIDTH, IMAGE_HEIGHT = 640, 360 # pixels
 
 CENTER = np.array([IMAGE_WIDTH//2, IMAGE_HEIGHT//2]) # Center of the image frame. We will treat this as the center of mass of the drone
-EXTEND = 300 # Number of pixels forward to extrapolate the line
+EXTEND = 100 # Number of pixels forward to extrapolate the line
 
 drone = System() # Define the drone system
 camera = None
 
 #PID Constants
-KP_X = 0.001
-KP_Y = 0.001
-KP_W_Z = 0.005
+KP_X = 0.0005
+KP_Y = 0.0005
+KP_W_Z = 1.5
 
-KD_X = 0.001
-KD_Y = 0.001
+KD_X = 0.00015
+KD_Y = 0.00015
 KD_W_Z = 0.005
 
 prev_x_error = 0
@@ -50,8 +50,8 @@ HI = np.array([255, 255, 255])   # Upper image thresholding bound
 KERNEL_D = np.ones((30, 30), np.uint8)
 KERNEL_E = np.ones((20, 20), np.uint8)
 
-R_dc2bd = np.array([[0.0, -1.0, 0.0, 0.0], 
-                      [1.0, 0.0, 0.0, 0.0], 
+R_dc2bd = np.array([[0.0, 1.0, 0.0, 0.0], 
+                      [-1.0, 0.0, 0.0, 0.0], 
                       [0.0, 0.0, 1.0, 0.0], 
                       [0.0, 0.0, 0.0, 1.0]]) 
 
@@ -59,7 +59,8 @@ R_dc2bd = np.array([[0.0, -1.0, 0.0, 0.0],
 
 
 def pid(error, angle_error):
-    # Set linear velocities (downward camera frame)
+        global prev_x_error, prev_y_error, prev_angle_error
+        # Set linear velocities (downward camera frame)
         vx = KP_X * error[0]
         vy = KP_Y * error[1]
 
@@ -72,10 +73,11 @@ def pid(error, angle_error):
         # Set angular velocity (yaw)
         wz = KD_W_Z * angle_error
 
-        wzc += KD_W_Z * (angle_error-prev_angle_error)/0.1
+        wz += KD_W_Z * (angle_error-prev_angle_error)/0.1
 
         prev_angle_error = angle_error
-        
+
+        print(f"error: {str(error)}, angle error: {str(angle_error)}")
         return vx, vy, wz
 
 """
@@ -120,7 +122,12 @@ def get_velocity(vx, vy, x, y):
 
     line_point = np.array([x, y])
     line_dir = np.array([vx, vy])
-    line_dir = line_dir / np.linalg.norm(line_dir)  # Ensure unit vector
+    line_dir = line_dir * (1/np.linalg.norm(line_dir))  # Ensure unit vector
+
+    line_point = line_point.T
+    line_point = line_point[0]
+    line_dir = line_dir.T
+    line_dir = line_dir[0]
 
     if line_dir[1] < 0: # ensure points "down" aka postive y direction 
         line_dir = -line_dir
@@ -134,8 +141,11 @@ def get_velocity(vx, vy, x, y):
     # Get angle between y-axis and line direction
     # Positive angle is counter-clockwise
     angle_error = math.atan2(-line_dir[0], line_dir[1])
+    angle_error = angle_error * 180 / math.pi
+
 
     vels__dc = pid(error, angle_error)
+    print(f"output__dc: {vels__dc[0]}, {vels__dc[1]}, {vels__dc[2]}")
 
     v4 = np.array([[vels__dc[0]],
                    [vels__dc[1]],
@@ -144,11 +154,13 @@ def get_velocity(vx, vy, x, y):
 
     vels__bd = R_dc2bd @ v4
 
+    print(f"unlimited output: {vels__bd[0]}, {vels__bd[1]}, {vels__bd[2]}")
+
     vx = min(max(vels__bd[0],-MAX_X_SPEED), MAX_X_SPEED)
     vy = min(max(vels__bd[1],-MAX_Y_SPEED), MAX_Y_SPEED)
     wz = min(max(vels__bd[2],-MAX_YAW_SPEED), MAX_YAW_SPEED)
 
-    return vx, vy, wz
+    return float(vx), float(vy), float(wz)
 
 
 """
@@ -177,7 +189,7 @@ Continuously calls get_velocity to determine setpoints
 First does roll/pitch then does yaw
 """
 async def run():
-    await drone.connect(system_address="serial:///dev/ttyAMA0:921600")
+    await drone.connect(system_address="serial:///dev/ttyAMA0:57600")
     print("Waiting for drone to connect...")
 
     async for state in drone.core.connection_state():
@@ -186,28 +198,32 @@ async def run():
             break
 
         
-    print("Setting parameters...")
-    await drone.action.set_takeoff_altitude(TAKEOFF_ALTITUDE)
+    # print("Setting parameters...")
+    # await drone.action.set_takeoff_altitude(TAKEOFF_ALTITUDE)
 
     print("Arming...")
     await drone.action.arm()
     print("Successfully Armed")
 
-    print("Taking off...")
-    await drone.action.takeoff()
-    await asyncio.sleep(TAKEOFF_TIME) # Pause for 8 seconds...
+    # print("Taking off...")
+    # await drone.action.takeoff()
+    # await asyncio.sleep(TAKEOFF_TIME) # Pause for 8 seconds...
 
     print("Setting position setpoint for offboard start...")
-    await drone.offboard.set_position_ned(
-        PositionNedYaw(north_m = 0.0, east_m=0.0, down_m=0.0, yaw_deg=0.0)
+    await drone.offboard.set_velocity_body(
+        VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=-0.1, yawspeed_deg_s=0.0)
     )
-
-    await drone.offboard.start()
+    try:
+        await drone.offboard.start()
+    except OffboardError as e:
+        print(e)
+        drone.action.kill()
 
     # First detects line, if no line detected then abort
     # If line detected, computes the vx, vy, and yaw (PID Tuned)
     # Feeds them into velocity body yaw speed
     # waits 1 second
+
     while True:
         print("\nStarting offboard calculation!")
         result = detect_line()
@@ -222,12 +238,13 @@ async def run():
         await drone.offboard.set_velocity_body(
             VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=0.0, yawspeed_deg_s=yaw_s)
         )
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
 
 
     print("\nOperation finished! Landing...")
     await drone.action.land()
+    
 
 if __name__ == "__main__":
-    asyncio.run(initiate_cam())
+    initiate_cam()
     asyncio.run(run())

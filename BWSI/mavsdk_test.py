@@ -2,7 +2,8 @@ import asyncio
 import numpy as np
 import math
 from mavsdk import System
-from mavsdk import Offboard
+from mavsdk import offboard
+from mavsdk.offboard import 
 import time
 import cv2
 from picamera2 import Picamera2

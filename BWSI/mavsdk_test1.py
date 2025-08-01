@@ -3,7 +3,8 @@ import numpy as np
 import math
 import mavsdk
 from mavsdk import System
-from mavsdk import Offboard
+from mavsdk import offboard
+from mavsdk.offboard import VelocityBodyYawspeed
 import time
 import cv2
 
@@ -33,7 +34,7 @@ Continuously calls get_velocity to determine setpoints
 First does roll/pitch then does yaw
 """
 async def run():
-    await drone.connect(system_address="serial:///dev/ttyAMA0:921600")
+    await drone.connect(system_address="serial:///dev/ttyAMA0:57600")
     print("Waiting for drone to connect...")
 
     async for state in drone.core.connection_state():
@@ -42,8 +43,8 @@ async def run():
             break
 
         
-    print("Setting parameters...")
-    await drone.action.set_takeoff_altitude(TAKEOFF_ALTITUDE)
+    # print("Setting parameters...")
+    # await drone.action.set_takeoff_altitude(TAKEOFF_ALTITUDE)
 
     print("Arming...")
     await drone.action.arm()
@@ -54,11 +55,15 @@ async def run():
     await asyncio.sleep(TAKEOFF_TIME) # Pause for 8 seconds...
 
     print("Setting position setpoint for offboard start...")
-    await drone.offboard.set_position_ned(
-        PositionNedYaw(north_m = 0.0, east_m=0.0, down_m=0.0, yaw_deg=0.0)
+    await drone.offboard.set_velocity_body(
+        VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=-0.1, yawspeed_deg_s=0.0)
     )
 
-    await drone.offboard.start()
+    try:
+        await drone.offboard.start()
+    except OffboardError as e:
+        print(e)
+        drone.action.land()
 
 
 
@@ -69,7 +74,6 @@ async def run():
     await drone.offboard.set_velocity_body(
         VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=0.0, yawspeed_deg_s=MAX_YAW_SPEED)
     )
-
     await asyncio.sleep(4)
 
 
@@ -77,5 +81,5 @@ async def run():
     await drone.action.land()
 
 if __name__ == "__main__":
-    mavsdk.start_mavlink(connection_url="serial:///dev/ttyAMA0:57600")
+
     asyncio.run(run())

@@ -170,8 +170,8 @@ void setup() {
   rightWheel.attach(2);  // attaches the right wheel servo on pin 2
   latch.attach(30);
 
-  latch.write(71);
-  //latch.write(81);
+  latch.write(8);
+  //latch.write(50);
 
   // Initialize the PID controllers
   leftPID.SetMode(AUTOMATIC);

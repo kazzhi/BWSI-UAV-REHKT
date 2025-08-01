@@ -16,7 +16,7 @@ from picamera2 import Picamera2
 ###########
 #CONSTANTS#
 ###########
-MAX_YAW_SPEED = 45.0 # degrees per second, positive facking up
+MAX_YAW_SPEED = 90.0 # degrees per second, positive facking up
 MAX_X_SPEED = 0.5 # meters per second, forward
 MAX_Y_SPEED = 0.5 # meters per second, right
 MAX_Z_SPEED = 0.5 # meters per second, down
@@ -32,13 +32,13 @@ drone = System() # Define the drone system
 camera = None
 
 #PID Constants
-KP_X = 0.0005
-KP_Y = 0.0005
-KP_W_Z = 1.5
+KP_X = 0.001
+KP_Y = 0.001
+KP_W_Z = 3.5
 
 KD_X = 0.00015
 KD_Y = 0.00015
-KD_W_Z = 0.005
+KD_W_Z = 0.2
 
 prev_x_error = 0
 prev_y_error = 0

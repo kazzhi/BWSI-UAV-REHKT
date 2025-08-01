@@ -7,6 +7,8 @@ from mavsdk.offboard import VelocityBodyYawspeed, PositionNedYaw, OffboardError
 import time
 import cv2
 from picamera2 import Picamera2
+from picamera2.encoders import H264Encoder
+from picamera2.outputs import FfmpegOutput 
 
 
 # wget https://github.com/mavlink/MAVSDK/releases/latest/download/mavsdk-server-linux-arm64
@@ -30,6 +32,8 @@ EXTEND = 100 # Number of pixels forward to extrapolate the line
 
 drone = System() # Define the drone system
 camera = None
+encoder = H264Encoder(bitrate=10_000_000, framerate=20)
+ffout = FfmpegOutput("-y -c:v copy cameraimgs/output.mp4")
 
 #PID Constants
 KP_X = 0.0005
@@ -184,9 +188,9 @@ Maybe use mavlink camera?
 def initiate_cam():
     global camera
     try:
-        camera = Picamera2()
+        camera = Picamera2(1)
         # Change config if needed for cv2 processing
-        camera_config = camera.create_still_configuration(main={"size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
+        camera_config = camera.create_video_configuration(main={"format": "BGR888", "size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
         camera.configure(camera_config)
         camera.start()
         time.sleep(0.5)
@@ -219,8 +223,8 @@ async def run():
     await drone.action.arm()
     print("Successfully Armed")
 
-    position_task = asyncio.create_task(subscribe_position(drone))
-    heading_task = asyncio.create_task(subscribe_heading(drone))
+    # position_task = asyncio.create_task(subscribe_position(drone))
+    # heading_task = asyncio.create_task(subscribe_heading(drone))
 
     # print("Taking off...")
     # await drone.action.takeoff()
@@ -228,7 +232,7 @@ async def run():
 
     print("Setting position setpoint for offboard start...")
     await drone.offboard.set_position_ned(
-        PositionNedYaw(north_m=0.0, east_m=0.0, down_m=TAKEOFF_ALTITUDE, yaw_deg=0.0)
+        PositionNedYaw(north_m=0.0, east_m=0.0, down_m=0.0, yaw_deg=0.0)
     )
     try:
         await drone.offboard.start()
@@ -240,12 +244,16 @@ async def run():
     # If line detected, computes the vx, vy, and yaw (PID Tuned)
     # Feeds them into velocity body yaw speed
     # waits 1 second
-
+    camera.start_recording(encoder, ffout)
+    DETECT = 0
     while True:
         print("\nStarting offboard calculation!")
         result = detect_line()
         if not result:
-            print("Unable to detect line")
+            DETECT += 1
+            print("No line found!")
+            if DETECT > 10:
+                break
             continue
         
         vx, vy, x, y = result
@@ -271,7 +279,7 @@ async def run():
             PositionNedYaw(north_m=north_pos, east_m=east_pos, down_m=down_pos, yaw_deg=yaw)
         )
         await asyncio.sleep(0.5)
-
+    camera.stop_recording()
 
     print("\nOperation finished! Landing...")
     await drone.action.land()

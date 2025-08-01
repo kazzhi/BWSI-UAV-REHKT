@@ -68,6 +68,7 @@ async def subscribe_position(drone):
     """Subscribes to position updates and updates the global variable."""
     global latest_altitude
     async for altitude in drone.telemetry.altitude():
+        print("altitude updated!!")
         latest_altitude = altitude
 
 def pid(error, angle_error):
@@ -177,10 +178,17 @@ def get_velocity(vx, vy, x, y):
 def get_z_velocity():
     if latest_altitude is None:
         return 0.0
+        print("no altitude !! sadge")
     error = TAKEOFF_ALTITUDE - latest_altitude.altitude_relative_m
+
+    print(f"Z error: {error}, rel. alt:  {latest_altitude.altitude_relative_m}")
+
     vz = KP_Z * error
     vz += KD_Z * (error-prev_z_error)/LOOP_TIME
     prev_z_error = error
+
+    vz = min(max(vz,-MAX_Z_SPEED), MAX_Z_SPEED)
+
     return vz
 
 """
@@ -190,7 +198,7 @@ Maybe use mavlink camera?
 def initiate_cam():
     global camera
     try:
-        camera = Picamera2()
+        camera = Picamera2(1)
         # Change config if needed for cv2 processing
         camera_config = camera.create_still_configuration(main={"size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
         camera.configure(camera_config)
@@ -243,14 +251,14 @@ async def run():
     # If line detected, computes the vx, vy, and yaw (PID Tuned)
     # Feeds them into velocity body yaw speed
     # waits 1 second
-
+    DETECT=0
     while True:
         print("\nStarting offboard calculation!")
         result = detect_line()
         if not result:
             DETECT += 1
             print("Unable to detect line")
-            if DETECT >= 10:
+            if DETECT >= 50:
                break
             else:
                continue
@@ -260,7 +268,7 @@ async def run():
 
         vel_z = get_z_velocity()
 
-        print(f"Forward velocity: {vel_x}, Right velocity: {vel_y}, Yaw speed: {yaw_s}")
+        print(f"Forward velocity: {vel_x}, Right velocity: {vel_y}, Down? velocity: {vel_z}, Yaw speed: {yaw_s}")
         await drone.offboard.set_velocity_body(
             VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=vel_z, yawspeed_deg_s=yaw_s)
         )

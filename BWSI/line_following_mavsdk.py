@@ -34,14 +34,17 @@ camera = None
 #PID Constants
 KP_X = 0.001
 KP_Y = 0.001
+KP_Z = 0.001
 KP_W_Z = 3.5
 
 KD_X = 0.00015
 KD_Y = 0.00015
+KD_Z = 0.00015
 KD_W_Z = 0.2
 
 prev_x_error = 0
 prev_y_error = 0
+prev_z_error = 0
 prev_angle_error = 0
 
 LOW = np.array([250, 250, 250])  # Lower image thresholding bound
@@ -57,6 +60,11 @@ R_dc2bd = np.array([[0.0, 1.0, 0.0, 0.0],
 DETECT = 0
 ############
 
+async def subscribe_position(drone):
+    """Subscribes to position updates and updates the global variable."""
+    global latest_altitude
+    async for altitude in drone.telemetry.altitude():
+        latest_altitude = altitude
 
 def pid(error, angle_error):
         global prev_x_error, prev_y_error, prev_angle_error
@@ -162,6 +170,13 @@ def get_velocity(vx, vy, x, y):
 
     return float(vx), float(vy), float(wz)
 
+def get_z_velocity():
+
+    error = TAKEOFF_ALTITUDE - latest_altitude.altitude_relative_m
+    vz = KP_Z * error
+    vz += KD_Z * (error-prev_z_error)/0.1
+    prev_z_error = error
+    return vz
 
 """
 Initiate Picamera
@@ -238,9 +253,11 @@ async def run():
         vx, vy, x, y = result
         vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)
 
+        vel_z = get_z_velocity()
+
         print(f"Forward velocity: {vel_x}, Right velocity: {vel_y}, Yaw speed: {yaw_s}")
         await drone.offboard.set_velocity_body(
-            VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=0.0, yawspeed_deg_s=yaw_s)
+            VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=vel_z, yawspeed_deg_s=yaw_s)
         )
         await asyncio.sleep(0.5)
 

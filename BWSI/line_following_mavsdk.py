@@ -339,6 +339,8 @@ def detect_id(image):
     # detectorParams.aprilTagMaxLineFitMse = 100 #default 10
     # detectorParams.aprilTagMaxNmaxima = 15 #default 10
     detectorParams.polygonalApproxAccuracyRate = 0.05 #default 0.03
+    detectorParams.errorCorrectionRate = 0.8 #default 0.6
+
     # detectorParams.useAruco3Detection = True
     detector = aruco.ArucoDetector(aruco_dict, detectorParams)
     corners, ids, rejected = detector.detectMarkers(image)

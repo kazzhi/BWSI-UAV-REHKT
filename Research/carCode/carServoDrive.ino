@@ -173,7 +173,7 @@ void setup() {
   rightWheel.attach(2);  // attaches the right wheel servo on pin 2
   latch.attach(30);
 
-  latch.write(8);
+  // latch.write(8);
   //latch.write(50);
 
   // Initialize the PID controllers
@@ -205,8 +205,11 @@ switch (stateSequence[currentStateIndex]) {
       moveForward(50.0);
       break;
     case FORWARD_75:
+      latch.write(8);
       if (!delayExecuted) {
-        delay(90000);
+        delay(60000);
+        latch.write(40);
+        delay(15000);
         delayExecuted = true;
         moveForward(100.0);
       }

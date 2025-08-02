@@ -334,13 +334,13 @@ def detect_id(image):
     
     aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_5X5_100)
 
-    # detectorParams = aruco.DetectorParameters()
+    detectorParams = aruco.DetectorParameters()
     # detectorParams.aprilTagCriticalRad = 0.1 #default 0.17
     # detectorParams.aprilTagMaxLineFitMse = 100 #default 10
     # detectorParams.aprilTagMaxNmaxima = 15 #default 10
-    # detectorParams.polygonalApproxAccuracyRate = 0.01 #default 0.03
+    detectorParams.polygonalApproxAccuracyRate = 0.05 #default 0.03
     # detectorParams.useAruco3Detection = True
-    detector = aruco.ArucoDetector(aruco_dict, aruco.DetectorParameters())
+    detector = aruco.ArucoDetector(aruco_dict, detectorParams)
     corners, ids, rejected = detector.detectMarkers(image)
 
     # corners, ids, _ = aruco.detectMarkers(

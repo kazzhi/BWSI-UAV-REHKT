@@ -16,7 +16,7 @@ from picamera2 import Picamera2
 ###########
 #CONSTANTS#
 ###########
-MAX_YAW_SPEED = 0.0 # degrees per second, positive facking up
+MAX_YAW_SPEED = 90.0 # degrees per second, positive facking up
 MAX_X_SPEED = 0.5 # meters per second, forward
 MAX_Y_SPEED = 0.5 # meters per second, right
 MAX_Z_SPEED = 1.0 # meters per second, down
@@ -265,7 +265,7 @@ async def run():
         if not result:
             DETECT += 1
             print("Unable to detect line")
-            if DETECT >= 500000:
+            if DETECT >= 50:
                break
             else:
                continue
@@ -273,7 +273,7 @@ async def run():
         count += 1
 
         if count >= 50:
-            TAKEOFF_ALTITUDE = -2.0
+            TAKEOFF_ALTITUDE = 2.0
         
         vx, vy, x, y = result
         vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)

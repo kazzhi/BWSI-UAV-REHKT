@@ -56,7 +56,7 @@ prev_angle_error = 0
 
 latest_altitude = None
 first_altitude = None
-height_offset = 0.75
+height_offset = 1.1
 
 LOW = np.array([250, 250, 250])  # Lower image thresholding bound
 HI = np.array([255, 255, 255])   # Upper image thresholding bound

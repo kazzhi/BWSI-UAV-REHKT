@@ -24,6 +24,7 @@ MAX_Y_SPEED = 0.5 # meters per second, right
 MAX_Z_SPEED = 1.0 # meters per second, down
 
 TAKEOFF_ALTITUDE = 1.0 # meters
+target_height = TAKEOFF_ALTITUDE # meters
 TAKEOFF_TIME = 8
 IMAGE_WIDTH, IMAGE_HEIGHT = 640, 360 # pixels
 
@@ -66,6 +67,10 @@ R_dc2bd = np.array([[0.0, 1.0, 0.0, 0.0],
                       [0.0, 0.0, 1.0, 0.0], 
                       [0.0, 0.0, 0.0, 1.0]]) 
 DETECT = 0
+
+tag_dict = { # tag number to takeoff_height
+    97: 2.0,
+}
 ############
 
 async def subscribe_position(drone):
@@ -183,11 +188,11 @@ def get_velocity(vx, vy, x, y):
     return float(vx), float(vy), float(wz)
 
 def get_z_velocity():
-    global prev_z_error, latest_altitude, first_altitude
+    global prev_z_error, latest_altitude, first_altitude, target_height
     if latest_altitude is None:
-        return 0.0
         print("no altitude !! sadge")
-    error = TAKEOFF_ALTITUDE - (latest_altitude.altitude_relative_m-first_altitude.altitude_relative_m)
+        return 0.0
+    error = target_height - (latest_altitude.altitude_relative_m-first_altitude.altitude_relative_m)
 
     print(f"Z error: {error}, alt:  {latest_altitude.altitude_relative_m-first_altitude.altitude_relative_m}")
 
@@ -230,7 +235,7 @@ Continuously calls get_velocity to determine setpoints
 First does roll/pitch then does yaw
 """
 async def run():
-    global TAKEOFF_ALTITUDE, forward_camera
+    global TAKEOFF_ALTITUDE, forward_camera, target_ids, target_height
     await drone.connect(system_address="serial:///dev/ttyAMA0:57600")
     print("Waiting for drone to connect...")
 
@@ -296,12 +301,16 @@ async def run():
 
         ids = detect_id(forward_camera.capture_array())
         print(str(ids))
-        if 23 in ids:
-            print("Tag detected!")
-            TAKEOFF_ALTITUDE = 2.0
-        else: 
-            TAKEOFF_ALTITUDE = 1.0
-        
+        for id in ids:
+            if id in target_ids:
+                print(f"Found target {id}!")
+                target_height = target_ids[id]
+                count = 0 # reset count 
+        count += 1 
+
+        if count >= 100: # 10 seconds after tag is no longer seen 
+            target_height = TAKEOFF_ALTITUDE
+                
         # vx, vy, x, y = result
         # vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)
 

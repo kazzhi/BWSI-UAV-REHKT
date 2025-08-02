@@ -41,12 +41,12 @@ LOOP_TIME = 0.05
 #PID Constants
 KP_X = 0.002
 KP_Y = 0.002
-KP_Z = 3.5
+KP_Z = 0.75
 KP_W_Z = 3.5
 
 KD_X = 0.0003
 KD_Y = 0.0003
-KD_Z = 0.1
+KD_Z = 0.015
 KD_W_Z = 0.2
 
 prev_x_error = 0

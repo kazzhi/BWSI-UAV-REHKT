@@ -177,9 +177,6 @@ void setup() {
   rightWheel.attach(2);  // attaches the right wheel servo on pin 2
   latch.attach(30);
 
-  latch.write(8);
-  //latch.write(50);
-
   // Initialize the PID controllers
   leftPID.SetMode(AUTOMATIC);
   leftPID.SetOutputLimits(-1, 1);  // Set the output limits to match the desired power range
@@ -274,6 +271,16 @@ switch (stateSequence[currentStateIndex]) {
   bool latchedState = latchedPinValue > HIGH_THRESHOLD;
   bool unlatchedState = unlatchedPinValue > HIGH_THRESHOLD;
   bool latchedDrivingState = latchedDrivingPinValue > HIGH_THRESHOLD;
+
+  if (latchedState){
+    latch.write(8);
+  } else if (latchedDrivingState){
+    latch.write(8);
+    //TODO: add code to somehow activate driving/the fsm??
+  } else if (unlatchedState){
+    //any open servo value, 18 is untested
+    latch.write(18);
+  }
 
   // Variables to store power values
   double leftPower = 0.0;

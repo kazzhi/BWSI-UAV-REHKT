@@ -19,8 +19,8 @@ import cv2.aruco as aruco
 #CONSTANTS#
 ###########
 MAX_YAW_SPEED = 90.0 # degrees per second, positive facking up
-MAX_X_SPEED = 0.5 # meters per second, forward
-MAX_Y_SPEED = 0.5 # meters per second, right
+MAX_X_SPEED = 0.6 # meters per second, forward
+MAX_Y_SPEED = 0.6 # meters per second, right
 MAX_Z_SPEED = 1.0 # meters per second, down
 
 TAKEOFF_ALTITUDE = 1.0 # meters
@@ -30,7 +30,7 @@ TAKEOFF_TIME = 8
 IMAGE_WIDTH, IMAGE_HEIGHT = 640, 360 # pixels
 
 CENTER = np.array([IMAGE_WIDTH//2, IMAGE_HEIGHT//2]) # Center of the image frame. We will treat this as the center of mass of the drone
-EXTEND = 150 # Number of pixels forward to extrapolate the line
+EXTEND = 175 # Number of pixels forward to extrapolate the line
 
 drone = System() # Define the drone system
 down_camera = None
@@ -39,15 +39,15 @@ forward_camera = None
 LOOP_TIME = 0.05
 
 #PID Constants
-KP_X = 0.002
-KP_Y = 0.002
+KP_X = 0.0025
+KP_Y = 0.0025
 KP_Z = 0.75
 KP_W_Z = 3.5
 
 KD_X = 0.0003
 KD_Y = 0.0003
 KD_Z = 0.015
-KD_W_Z = 0.2
+KD_W_Z = 0.4
 
 prev_x_error = 0
 prev_y_error = 0

@@ -327,8 +327,9 @@ async def run():
     """
 def detect_id(image):
     kernel = np.ones((3, 3),np.uint8)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    image = cv2.convertScaleAbs(image, alpha=1.0, beta=-50)
+    image = cv2.convertScaleAbs(gray, alpha=1.0, beta=-50)
     image = cv2.erode(image, kernel)
 
 

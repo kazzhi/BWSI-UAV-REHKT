@@ -70,7 +70,9 @@ R_dc2bd = np.array([[0.0, 1.0, 0.0, 0.0],
 DETECT = 0
 
 tag_dict = { # tag number to takeoff_height
-    77: 2.0,
+    77: 1.6,
+    88: 1.0,
+    87: 2.0
 }
 ############
 

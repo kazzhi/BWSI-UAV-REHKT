@@ -221,6 +221,7 @@ Continuously calls get_velocity to determine setpoints
 First does roll/pitch then does yaw
 """
 async def run():
+    global TAKEOFF_ALTITUDE
     await drone.connect(system_address="serial:///dev/ttyAMA0:57600")
     print("Waiting for drone to connect...")
 
@@ -257,6 +258,7 @@ async def run():
     # Feeds them into velocity body yaw speed
     # waits 1 second
     DETECT=0
+    count = 0
     while True:
         print("\nStarting offboard calculation!")
         result = detect_line()
@@ -267,6 +269,11 @@ async def run():
                break
             else:
                continue
+
+        count += 1
+
+        if count >= 50:
+            TAKEOFF_ALTITUDE = -2.0
         
         vx, vy, x, y = result
         vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)

@@ -263,21 +263,21 @@ async def run():
 
     altitude_task = asyncio.create_task(subscribe_position(drone))
 
-    takeoff_count = 0
+    # takeoff_count = 0
 
-    while takeoff_count < 50: # five seconds !!
-        print("\nTaking off!!! :3")
+    # while takeoff_count < 50: # five seconds !!
+    #     print("\nTaking off!!! :3")
 
-        vel_z = get_z_velocity()
+    #     vel_z = get_z_velocity()
 
-        await drone.offboard.set_velocity_body(
-            VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=vel_z, yawspeed_deg_s=0.0)
-        )
+    #     await drone.offboard.set_velocity_body(
+    #         VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=vel_z, yawspeed_deg_s=0.0)
+    #     )
 
-        takeoff_count += 1
-        await asyncio.sleep(0.1)
+    #     takeoff_count += 1
+    #     await asyncio.sleep(0.1)
         
-    print("Takeoff complete!")
+    # print("Takeoff complete!")
 # First detects line, if no line detected then abort
     # If line detected, computes the vx, vy, and yaw (PID Tuned)
     # Feeds them into velocity body yaw speed
@@ -285,33 +285,33 @@ async def run():
     DETECT=0
     while True:
         print("\nStarting offboard calculation!")
-        result = detect_line()
-        if not result:
-            DETECT += 1
-            print("Unable to detect line")
-            if DETECT >= 100:
-               break
-            else:
-               continue
+        # result = detect_line()
+        # if not result:
+        #     DETECT += 1
+        #     print("Unable to detect line")
+        #     if DETECT >= 100:
+        #        break
+        #     else:
+        #        continue
 
         ids = detect_id(forward_camera.capture_array())
         print(len(ids))
-        if 97 in ids:
+        if 23 in ids:
             print("Tag detected!")
             TAKEOFF_ALTITUDE = 2.0
         else: 
             TAKEOFF_ALTITUDE = 1.0
         
-        vx, vy, x, y = result
-        vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)
+        # vx, vy, x, y = result
+        # vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)
 
-        vel_z = get_z_velocity()
+        # vel_z = get_z_velocity()
 
-        print(f"Forward velocity: {vel_x}, Right velocity: {vel_y}, Down? velocity: {vel_z}, Yaw speed: {yaw_s}")
-        await drone.offboard.set_velocity_body(
-            VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=vel_z, yawspeed_deg_s=yaw_s)
-        )
-        await asyncio.sleep(0.1)
+        # print(f"Forward velocity: {vel_x}, Right velocity: {vel_y}, Down? velocity: {vel_z}, Yaw speed: {yaw_s}")
+        # await drone.offboard.set_velocity_body(
+        #     VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=vel_z, yawspeed_deg_s=yaw_s)
+        # )
+        # await asyncio.sleep(0.1)
 
 
     print("\nOperation finished! Landing...")

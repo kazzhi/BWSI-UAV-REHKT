@@ -30,13 +30,13 @@ enum RobotState {
 
 // Define the sequence of states for the state machine
 RobotState stateSequence[] = { 
-  FORWARD_50,
+  FORWARD_75,
   TURN_LEFT,
-  FORWARD_50,
+  FORWARD_100,
   TURN_LEFT,
-  FORWARD_50,
+  FORWARD_100,
   TURN_LEFT,
-  FORWARD_50,
+  FORWARD_100,
   TURN_LEFT,
   STOP 
 };
@@ -105,6 +105,8 @@ int currentStateIndex = 0;
 // Target distances for each state
 float turnWheelTargetDist = 24; // Turn target distance in cm, UNTESTED
 
+bool delayExecuted = false;
+
 void resetVariables() {
   leftActionCompleted = false;
   rightActionCompleted = false;
@@ -119,6 +121,7 @@ void resetVariables() {
   firstLoopRight = true;
 
   accelerationStartTime = millis();
+  delayExecuted = false;
 }
 
 void handleStateTransitions() {
@@ -170,8 +173,8 @@ void setup() {
   rightWheel.attach(2);  // attaches the right wheel servo on pin 2
   latch.attach(30);
 
-  latch.write(71);
-  //latch.write(81);
+  latch.write(8);
+  //latch.write(50);
 
   // Initialize the PID controllers
   leftPID.SetMode(AUTOMATIC);
@@ -202,7 +205,11 @@ switch (stateSequence[currentStateIndex]) {
       moveForward(50.0);
       break;
     case FORWARD_75:
-      moveForward(75.0);
+      if (!delayExecuted) {
+        delay(90000);
+        delayExecuted = true;
+        moveForward(100.0);
+      }
       break;
     case FORWARD_100:
       moveForward(100.0);

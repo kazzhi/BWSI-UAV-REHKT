@@ -179,7 +179,7 @@ def get_velocity(vx, vy, x, y):
     return float(vx), float(vy), float(wz)
 
 def get_z_velocity():
-    global prev_z_error
+    global prev_z_error, latest_altitude, first_altitude
     if latest_altitude is None:
         return 0.0
         print("no altitude !! sadge")

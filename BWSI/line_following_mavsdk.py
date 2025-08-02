@@ -327,21 +327,27 @@ async def run():
     """
 def detect_id(image):
     kernel = np.ones((3, 3),np.uint8)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    image = cv2.convertScaleAbs(gray, alpha=1.0, beta=-50)
-    image = cv2.erode(image, kernel)
+    # image = cv2.convertScaleAbs(image, alpha=1.0, beta=-50)
+    # image = cv2.erode(image, kernel)
     
     aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_5X5_100)
 
-    detectorParams = aruco.DetectorParameters()
-    detectorParams.aprilTagCriticalRad = 0.1 #default 0.17
-    detectorParams.aprilTagMaxLineFitMse = 100 #default 10
-    detectorParams.aprilTagMaxNmaxima = 15 #default 10
-    detectorParams.polygonalApproxAccuracyRate = 0.01 #default 0.03
-    detectorParams.useAruco3Detection = True
-    detector = aruco.ArucoDetector(aruco_dict, detectorParams)
-    corners, ids, rejected = detector.detectMarkers(image)
+    # detectorParams = aruco.DetectorParameters()
+    # detectorParams.aprilTagCriticalRad = 0.1 #default 0.17
+    # detectorParams.aprilTagMaxLineFitMse = 100 #default 10
+    # detectorParams.aprilTagMaxNmaxima = 15 #default 10
+    # detectorParams.polygonalApproxAccuracyRate = 0.01 #default 0.03
+    # detectorParams.useAruco3Detection = True
+    # detector = aruco.ArucoDetector(aruco_dict, detectorParams)
+    # corners, ids, rejected = detector.detectMarkers(image)
+
+    corners, ids, _ = cv2.aruco.detectMarkers(
+               image, aruco_dict, parameters=aruco.DetectorParameters_create()
+
+           )
+
     if ids is None:
         return []
     return ids.flatten()

@@ -74,8 +74,8 @@ tag_dict = { # tag number to takeoff_height
     77: 1.6, # first one 
     28: 1.6,
     99: 1.6,
-    88: 1.0, # second one 
-    84: 1.0,
+    88: 0.8, # second one 
+    84: 0.8,
     87: 2.0, # third one
     37: 2.0, 
     98: 2.0,

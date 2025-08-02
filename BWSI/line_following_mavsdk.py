@@ -277,6 +277,7 @@ async def run():
         print("\nTaking off!!! :3")
 
         vel_z = get_z_velocity()
+        print("vel_z: ", vel_z)
 
         await drone.offboard.set_velocity_body(
             VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=vel_z, yawspeed_deg_s=0.0)

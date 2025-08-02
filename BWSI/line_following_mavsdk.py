@@ -18,7 +18,7 @@ import cv2.aruco as aruco
 ###########
 #CONSTANTS#
 ###########
-MAX_YAW_SPEED = 90.0 # degrees per second, positive facking up
+MAX_YAW_SPEED = 0.0 # degrees per second, positive facking up
 MAX_X_SPEED = 0.5 # meters per second, forward
 MAX_Y_SPEED = 0.5 # meters per second, right
 MAX_Z_SPEED = 1.0 # meters per second, down
@@ -295,8 +295,9 @@ async def run():
                continue
 
         ids = detect_id(forward_camera.capture_array())
-
+        print(len(ids))
         if 97 in ids:
+            print("Tag detected!")
             TAKEOFF_ALTITUDE = 2.0
         else: 
             TAKEOFF_ALTITUDE = 1.0

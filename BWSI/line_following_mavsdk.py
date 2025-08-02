@@ -273,20 +273,20 @@ async def run():
 
     takeoff_count = 0
 
-    while takeoff_count < 50: # five seconds !!
-        print("\nTaking off!!! :3")
+    # while takeoff_count < 50: # five seconds !!
+    #     print("\nTaking off!!! :3")
 
-        vel_z = get_z_velocity()
-        print("vel_z: ", vel_z)
+    #     vel_z = get_z_velocity()
+    #     print("vel_z: ", vel_z)
 
-        await drone.offboard.set_velocity_body(
-            VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=vel_z, yawspeed_deg_s=0.0)
-        )
+    #     await drone.offboard.set_velocity_body(
+    #         VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=vel_z, yawspeed_deg_s=0.0)
+    #     )
 
-        takeoff_count += 1
-        await asyncio.sleep(0.1)
+    #     takeoff_count += 1
+    #     await asyncio.sleep(0.1)
         
-    print("Takeoff complete!")
+    # print("Takeoff complete!")
 # First detects line, if no line detected then abort
     # If line detected, computes the vx, vy, and yaw (PID Tuned)
     # Feeds them into velocity body yaw speed

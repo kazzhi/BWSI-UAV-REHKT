@@ -72,7 +72,7 @@ async def subscribe_position(drone):
         latest_altitude = altitude
 
 def pid(error, angle_error):
-        global prev_x_error, prev_y_error, prev_angle_error
+        global prev_x_error, prev_y_error, prev_z_error, prev_angle_error
         # Set linear velocities (downward camera frame)
         vx = KP_X * error[0]
         vy = KP_Y * error[1]
@@ -176,10 +176,11 @@ def get_velocity(vx, vy, x, y):
     return float(vx), float(vy), float(wz)
 
 def get_z_velocity():
+    global prev_z_error
     if latest_altitude is None:
         return 0.0
         print("no altitude !! sadge")
-    error = TAKEOFF_ALTITUDE - latest_altitude.altitude_relative_m
+    error = TAKEOFF_ALTITUDE - latest_altitude.altitude_terrain_m
 
     print(f"Z error: {error}, rel. alt:  {latest_altitude.altitude_relative_m}")
 
@@ -247,7 +248,8 @@ async def run():
         print(e)
         drone.action.kill()
 
-    # First detects line, if no line detected then abort
+    altitude_task = asyncio.create_task(subscribe_position(drone))
+# First detects line, if no line detected then abort
     # If line detected, computes the vx, vy, and yaw (PID Tuned)
     # Feeds them into velocity body yaw speed
     # waits 1 second

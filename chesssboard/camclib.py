@@ -20,7 +20,7 @@ img_points_2D = []  # 2d points in image plane.
 
 
 import glob
-image_files = glob.glob("imgs/*.png")
+image_files = glob.glob("converted/*.png")
 
 print(len(image_files))
 

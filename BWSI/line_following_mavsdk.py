@@ -56,6 +56,7 @@ prev_angle_error = 0
 
 latest_altitude = None
 first_altitude = None
+height_offset = 0.75
 
 LOW = np.array([250, 250, 250])  # Lower image thresholding bound
 HI = np.array([255, 255, 255])   # Upper image thresholding bound
@@ -191,13 +192,13 @@ def get_velocity(vx, vy, x, y):
     return float(vx), float(vy), float(wz)
 
 def get_z_velocity():
-    global prev_z_error, latest_altitude, first_altitude, target_height
+    global prev_z_error, latest_altitude, first_altitude, target_height, height_offset
     if latest_altitude is None:
         print("no altitude !! sadge")
         return 0.0
-    error = target_height - (latest_altitude.altitude_relative_m-first_altitude.altitude_relative_m)
+    error = target_height - (latest_altitude.altitude_relative_m-(first_altitude.altitude_relative_m-height_offset))
 
-    print(f"Z error: {error}, alt:  {latest_altitude.altitude_relative_m-first_altitude.altitude_relative_m}")
+    print(f"Z error: {error}, alt:  {latest_altitude.altitude_relative_m-(first_altitude.altitude_relative_m-height_offset)}")
 
     vz = KP_Z * error
     vz += KD_Z * (error-prev_z_error)/LOOP_TIME

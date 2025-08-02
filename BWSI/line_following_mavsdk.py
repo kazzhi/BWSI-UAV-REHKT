@@ -25,6 +25,7 @@ MAX_Z_SPEED = 1.0 # meters per second, down
 
 TAKEOFF_ALTITUDE = 1.0 # meters
 target_height = TAKEOFF_ALTITUDE # meters
+height_timeout = 10*10 
 TAKEOFF_TIME = 8
 IMAGE_WIDTH, IMAGE_HEIGHT = 640, 360 # pixels
 
@@ -69,7 +70,7 @@ R_dc2bd = np.array([[0.0, 1.0, 0.0, 0.0],
 DETECT = 0
 
 tag_dict = { # tag number to takeoff_height
-    97: 2.0,
+    77: 2.0,
 }
 ############
 
@@ -235,7 +236,7 @@ Continuously calls get_velocity to determine setpoints
 First does roll/pitch then does yaw
 """
 async def run():
-    global TAKEOFF_ALTITUDE, forward_camera, target_ids, target_height
+    global TAKEOFF_ALTITUDE, forward_camera, target_ids, target_height, height_timeout
     await drone.connect(system_address="serial:///dev/ttyAMA0:57600")
     print("Waiting for drone to connect...")
 
@@ -308,7 +309,7 @@ async def run():
                 count = 0 # reset count 
         count += 1 
 
-        if count >= 100: # 10 seconds after tag is no longer seen 
+        if count >= height_timeout: # 10 seconds after tag is no longer seen 
             target_height = TAKEOFF_ALTITUDE
                 
         vx, vy, x, y = result

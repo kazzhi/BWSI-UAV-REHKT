@@ -3,6 +3,9 @@
 
 // Define the states for the state machine
 enum RobotState {
+  DEMO_BEGINNING,
+  DEMO_ENDING,
+
   FORWARD_25,
   FORWARD_50,
   FORWARD_75,
@@ -30,7 +33,7 @@ enum RobotState {
 
 // Define the sequence of states for the state machine
 RobotState stateSequence[] = { 
-  FORWARD_75,
+  DEMO_BEGINNING,
   TURN_LEFT,
   FORWARD_100,
   TURN_LEFT,
@@ -38,6 +41,7 @@ RobotState stateSequence[] = {
   TURN_LEFT,
   FORWARD_100,
   TURN_LEFT,
+  DEMO_ENDING,
   STOP 
 };
 
@@ -198,6 +202,22 @@ void setup() {
 void loop() {
   // Execute current state logic
 switch (stateSequence[currentStateIndex]) {
+    case DEMO_BEGINNING:
+      if (!delayExecuted) {
+        latch.write(18);
+        delay(45000);
+        latch.write(8);
+
+        delay(20000);
+        moveForward(100.0);
+        delayExecuted = true;
+      }
+      break;
+    case DEMO_ENDING:
+      if (!delayExecuted) {
+        latch.write(18);
+      }
+      break;
     case FORWARD_25:
       moveForward(25.0);
       break;
@@ -205,11 +225,7 @@ switch (stateSequence[currentStateIndex]) {
       moveForward(50.0);
       break;
     case FORWARD_75:
-      if (!delayExecuted) {
-        delay(90000);
-        delayExecuted = true;
-        moveForward(100.0);
-      }
+      moveForward(75.0);
       break;
     case FORWARD_100:
       moveForward(100.0);

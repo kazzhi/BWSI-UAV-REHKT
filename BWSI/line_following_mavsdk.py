@@ -30,7 +30,7 @@ TAKEOFF_TIME = 8
 IMAGE_WIDTH, IMAGE_HEIGHT = 640, 360 # pixels
 
 CENTER = np.array([IMAGE_WIDTH//2, IMAGE_HEIGHT//2]) # Center of the image frame. We will treat this as the center of mass of the drone
-EXTEND = 100 # Number of pixels forward to extrapolate the line
+EXTEND = 150 # Number of pixels forward to extrapolate the line
 
 drone = System() # Define the drone system
 down_camera = None

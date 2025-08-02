@@ -73,7 +73,8 @@ DETECT = 0
 tag_dict = { # tag number to takeoff_height
     77: 1.6,
     88: 1.0,
-    87: 2.0
+    87: 2.0,
+    97: 0.5
 }
 ############
 

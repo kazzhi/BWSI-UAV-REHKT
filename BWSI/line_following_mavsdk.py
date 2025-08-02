@@ -7,6 +7,8 @@ from mavsdk.offboard import VelocityBodyYawspeed, OffboardError
 import time
 import cv2
 from picamera2 import Picamera2
+import cv2.aruco as aruco
+
 
 
 # wget https://github.com/mavlink/MAVSDK/releases/latest/download/mavsdk-server-linux-arm64
@@ -323,7 +325,9 @@ async def run():
     Output: numpy array of TAGIDs (may be multiple)
     """
 def detect_id(image):
-    image = cv2.convertScaleAbs(gray, alpha=1.0, beta=-50)
+    kernel = np.ones((3, 3),np.uint8)
+
+    image = cv2.convertScaleAbs(image, alpha=1.0, beta=-50)
     image = cv2.erode(image, kernel)
 
 
@@ -336,8 +340,9 @@ def detect_id(image):
     detectorParams.polygonalApproxAccuracyRate = 0.01 #default 0.03
     detectorParams.useAruco3Detection = True
     detector = aruco.ArucoDetector(aruco_dict, detectorParams)
-    corners, ids, rejected = detector.detectMarkers(gray)
-
+    corners, ids, rejected = detector.detectMarkers(image)
+    if ids is None:
+        return []
     return ids.flatten()
 
 if __name__ == "__main__":

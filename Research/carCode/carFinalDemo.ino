@@ -204,7 +204,7 @@ void loop() {
 switch (stateSequence[currentStateIndex]) {
     case DEMO_BEGINNING:
       if (!delayExecuted) {
-        latch.write(18);
+        latch.write(40);
         delay(45000);
         latch.write(8);
 
@@ -215,7 +215,7 @@ switch (stateSequence[currentStateIndex]) {
       break;
     case DEMO_ENDING:
       if (!delayExecuted) {
-        latch.write(18);
+        latch.write(40);
       }
       break;
     case FORWARD_25:

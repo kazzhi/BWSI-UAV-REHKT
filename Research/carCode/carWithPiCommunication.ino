@@ -59,6 +59,9 @@ const int latchedStatePin = A8;
 const int unlatchedStatePin = A6;
 const int latchedDrivingStatePin = A4;
 
+bool fsmActive = false;
+bool prevLatchedDrivingState = false;
+
 const int HIGH_THRESHOLD = 600;  // Anything above this is HIGH
 
 // Gear ratio and wheel properties
@@ -198,7 +201,8 @@ void setup() {
 
 void loop() {
   // Execute current state logic
-switch (stateSequence[currentStateIndex]) {
+if (fsmActive) {
+  switch (stateSequence[currentStateIndex]) {
     case FORWARD_25:
       moveForward(25.0);
       break;
@@ -262,6 +266,7 @@ switch (stateSequence[currentStateIndex]) {
     case STOP:
       stop();
       break;
+  }
 }
 
   int latchedPinValue = analogRead(latchedStatePin);
@@ -276,7 +281,8 @@ switch (stateSequence[currentStateIndex]) {
     latch.write(8);
   } else if (latchedDrivingState){
     latch.write(8);
-    //TODO: add code to somehow activate driving/the fsm??
+    //untested code to activate driving w/ fsm
+    fsmActive = true;
   } else if (unlatchedState){
     //any open servo value, 18 is untested
     latch.write(18);

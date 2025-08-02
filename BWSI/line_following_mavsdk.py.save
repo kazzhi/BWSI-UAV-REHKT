@@ -7,8 +7,6 @@ from mavsdk.offboard import VelocityBodyYawspeed, OffboardError
 import time
 import cv2
 from picamera2 import Picamera2
-import cv2.aruco as aruco
-
 
 
 # wget https://github.com/mavlink/MAVSDK/releases/latest/download/mavsdk-server-linux-arm64
@@ -18,10 +16,10 @@ import cv2.aruco as aruco
 ###########
 #CONSTANTS#
 ###########
-MAX_YAW_SPEED = 0.0 # degrees per second, positive facking up
+MAX_YAW_SPEED = 90.0 # degrees per second, positive facking up
 MAX_X_SPEED = 0.5 # meters per second, forward
 MAX_Y_SPEED = 0.5 # meters per second, right
-MAX_Z_SPEED = 1.0 # meters per second, down
+MAX_Z_SPEED = 0.5 # meters per second, down
 
 TAKEOFF_ALTITUDE = 1.0 # meters
 TAKEOFF_TIME = 8
@@ -31,29 +29,20 @@ CENTER = np.array([IMAGE_WIDTH//2, IMAGE_HEIGHT//2]) # Center of the image frame
 EXTEND = 100 # Number of pixels forward to extrapolate the line
 
 drone = System() # Define the drone system
-down_camera = None
-forward_camera = None
-
-LOOP_TIME = 0.05
+camera = None
 
 #PID Constants
 KP_X = 0.001
 KP_Y = 0.001
-KP_Z = 0.75
 KP_W_Z = 3.5
 
 KD_X = 0.00015
 KD_Y = 0.00015
-KD_Z = 0.015
 KD_W_Z = 0.2
 
 prev_x_error = 0
 prev_y_error = 0
-prev_z_error = 0
 prev_angle_error = 0
-
-latest_altitude = None
-first_altitude = None
 
 LOW = np.array([250, 250, 250])  # Lower image thresholding bound
 HI = np.array([255, 255, 255])   # Upper image thresholding bound
@@ -68,24 +57,15 @@ R_dc2bd = np.array([[0.0, 1.0, 0.0, 0.0],
 DETECT = 0
 ############
 
-async def subscribe_position(drone):
-    """Subscribes to position updates and updates the global variable."""
-    global latest_altitude, first_altitude
-    async for altitude in drone.telemetry.altitude():
-        print("altitude updated!!")
-        if first_altitude is None:
-            first_altitude = altitude
-        latest_altitude = altitude
-
 
 def pid(error, angle_error):
-        global prev_x_error, prev_y_error, prev_z_error, prev_angle_error
+        global prev_x_error, prev_y_error, prev_angle_error
         # Set linear velocities (downward camera frame)
         vx = KP_X * error[0]
         vy = KP_Y * error[1]
 
-        vx += KD_X * (error[0]-prev_x_error)/LOOP_TIME
-        vy += KD_Y * (error[1]-prev_y_error)/LOOP_TIME
+        vx += KD_X * (error[0]-prev_x_error)/0.1
+        vy += KD_Y * (error[1]-prev_y_error)/0.1
 
         prev_x_error = error[0]
         prev_y_error = error[1]
@@ -93,7 +73,7 @@ def pid(error, angle_error):
         # Set angular velocity (yaw)
         wz = KD_W_Z * angle_error
 
-        wz += KD_W_Z * (angle_error-prev_angle_error)/LOOP_TIME
+        wz += KD_W_Z * (angle_error-prev_angle_error)/0.1
 
         prev_angle_error = angle_error
 
@@ -107,7 +87,7 @@ returns none if no line is detected
 """
 def detect_line():
     try:
-        image = down_camera.capture_array()
+        image = camera.capture_array()
         image = cv2.dilate(image, KERNEL_D, iterations = 1)
         image = cv2.erode(image, KERNEL_E, iterations = 1)
         mask = cv2.inRange(image, LOW, HI)
@@ -182,40 +162,19 @@ def get_velocity(vx, vy, x, y):
 
     return float(vx), float(vy), float(wz)
 
-def get_z_velocity():
-    global prev_z_error, latest_altitude, first_altitude
-    if latest_altitude is None:
-        return 0.0
-        print("no altitude !! sadge")
-    error = TAKEOFF_ALTITUDE - (latest_altitude.altitude_relative_m-first_altitude.altitude_relative_m)
-
-    print(f"Z error: {error}, alt:  {latest_altitude.altitude_relative_m-first_altitude.altitude_relative_m}")
-
-    vz = KP_Z * error
-    vz += KD_Z * (error-prev_z_error)/LOOP_TIME
-    prev_z_error = error
-
-    vz = min(max(vz,-MAX_Z_SPEED), MAX_Z_SPEED)
-
-    return -vz
 
 """
 Initiate Picamera
 Maybe use mavlink camera?
 """
 def initiate_cam():
-    global down_camera, forward_camera
+    global camera
     try:
-        down_camera = Picamera2(1)
-        forward_camera = Picamera2(0)
+        camera = Picamera2()
         # Change config if needed for cv2 processing
-        camera_config = down_camera.create_still_configuration(main={"size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
-        down_camera.configure(camera_config)
-        down_camera.start()
-
-        camera_config = forward_camera.create_still_configuration(main={"size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
-        forward_camera.configure(camera_config)
-        forward_camera.start()
+        camera_config = camera.create_still_configuration(main={"size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
+        camera.configure(camera_config)
+        camera.start()
         time.sleep(0.5)
         print("Camera initialized!")
     except Exception as e:
@@ -230,7 +189,6 @@ Continuously calls get_velocity to determine setpoints
 First does roll/pitch then does yaw
 """
 async def run():
-    global TAKEOFF_ALTITUDE, forward_camera
     await drone.connect(system_address="serial:///dev/ttyAMA0:57600")
     print("Waiting for drone to connect...")
 
@@ -238,7 +196,7 @@ async def run():
         if state.is_connected:
             print("Drone discovered!")
             break
-
+    
         
     # print("Setting parameters...")
     # await drone.action.set_takeoff_altitude(TAKEOFF_ALTITUDE)
@@ -251,108 +209,45 @@ async def run():
     # await drone.action.takeoff()
     # await asyncio.sleep(TAKEOFF_TIME) # Pause for 8 seconds...
 
-    # print("Setting position setpoint for offboard start...")
-    # await drone.offboard.set_velocity_body(
-    #     VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=-0.1, yawspeed_deg_s=0.0)
-    # )
-    # try:
-    #     await drone.offboard.start()
-    # except OffboardError as e:
-    #     print(e)
-    #     drone.action.kill()
+    print("Setting position setpoint for offboard start...")
+    await drone.offboard.set_velocity_body(
+        VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=-0.1, yawspeed_deg_s=0.0)
+    )
+    try:
+        await drone.offboard.start()
+    except OffboardError as e:
+        print(e)
+        drone.action.kill()
 
-    altitude_task = asyncio.create_task(subscribe_position(drone))
-
-    # takeoff_count = 0
-
-    # while takeoff_count < 50: # five seconds !!
-    #     print("\nTaking off!!! :3")
-
-    #     vel_z = get_z_velocity()
-
-    #     await drone.offboard.set_velocity_body(
-    #         VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=vel_z, yawspeed_deg_s=0.0)
-    #     )
-
-    #     takeoff_count += 1
-    #     await asyncio.sleep(0.1)
-        
-    # print("Takeoff complete!")
-# First detects line, if no line detected then abort
+    # First detects line, if no line detected then abort
     # If line detected, computes the vx, vy, and yaw (PID Tuned)
     # Feeds them into velocity body yaw speed
     # waits 1 second
-    DETECT=0
+
     while True:
         print("\nStarting offboard calculation!")
-        # result = detect_line()
-        # if not result:
-        #     DETECT += 1
-        #     print("Unable to detect line")
-        #     if DETECT >= 100:
-        #        break
-        #     else:
-        #        continue
-
-        ids = detect_id(forward_camera.capture_array())
-        print(str(ids))
-        if 23 in ids:
-            print("Tag detected!")
-            TAKEOFF_ALTITUDE = 2.0
-        else: 
-            TAKEOFF_ALTITUDE = 1.0
+        result = detect_line()
+        if not result:
+            DETECT += 1
+            print("Unable to detect line")
+            if DETECT >= 10:
+               break
+            else:
+               continue
         
-        # vx, vy, x, y = result
-        # vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)
+        vx, vy, x, y = result
+        vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)
 
-        # vel_z = get_z_velocity()
-
-        # print(f"Forward velocity: {vel_x}, Right velocity: {vel_y}, Down? velocity: {vel_z}, Yaw speed: {yaw_s}")
-        # await drone.offboard.set_velocity_body(
-        #     VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=vel_z, yawspeed_deg_s=yaw_s)
-        # )
-        # await asyncio.sleep(0.1)
+        print(f"Forward velocity: {vel_x}, Right velocity: {vel_y}, Yaw speed: {yaw_s}")
+        await drone.offboard.set_velocity_body(
+            VelocityBodyYawspeed(forward_m_s=vel_x, right_m_s=vel_y, down_m_s=0.0, yawspeed_deg_s=yaw_s)
+        )
+        await asyncio.sleep(0.5)
 
 
     print("\nOperation finished! Landing...")
     await drone.action.land()
     
-
-    """
-    Function Description: Passing in a grayscale cv2 image and detects the AR tag based on the aruco 5x5 dictionary
-    with numbers 1-100 (WARNING: IF TAG NOT FULLY VISIBLE AS SQUARE WILL NOT WORK)
-
-    Input: Cv2 Image
-    Output: numpy array of TAGIDs (may be multiple)
-    """
-def detect_id(image):
-    kernel = np.ones((3, 3),np.uint8)
-    # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # image = cv2.convertScaleAbs(image, alpha=1.0, beta=-50)
-    # image = cv2.erode(image, kernel)
-    
-    aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_5X5_100)
-
-    detectorParams = aruco.DetectorParameters()
-    # detectorParams.aprilTagCriticalRad = 0.1 #default 0.17
-    # detectorParams.aprilTagMaxLineFitMse = 100 #default 10
-    # detectorParams.aprilTagMaxNmaxima = 15 #default 10
-    detectorParams.polygonalApproxAccuracyRate = 0.05 #default 0.03
-    detectorParams.errorCorrectionRate = 0.8 #default 0.6
-
-    # detectorParams.useAruco3Detection = True
-    detector = aruco.ArucoDetector(aruco_dict, detectorParams)
-    corners, ids, rejected = detector.detectMarkers(image)
-    
-    # corners, ids, _ = aruco.detectMarkers(
-    #            image, aruco_dict, parameters=aruco.DetectorParameters_create()
-
-    #        )
-
-    if ids is None:
-        return []
-    return ids.flatten()
 
 if __name__ == "__main__":
     initiate_cam()

@@ -21,7 +21,7 @@ MAX_X_SPEED = 0.5 # meters per second, forward
 MAX_Y_SPEED = 0.5 # meters per second, right
 MAX_Z_SPEED = 0.5 # meters per second, down
 
-TAKEOFF_ALTITUDE = 1.0 # meters
+TAKEOFF_ALTITUDE = -1.0 # meters
 TAKEOFF_TIME = 8
 IMAGE_WIDTH, IMAGE_HEIGHT = 640, 360 # pixels
 

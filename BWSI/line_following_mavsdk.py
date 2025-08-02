@@ -312,7 +312,8 @@ async def run():
         count += 1 
 
         if count >= height_timeout: # 10 seconds after tag is no longer seen 
-            target_height = TAKEOFF_ALTITUDE
+            # target_height = TAKEOFF_ALTITUDE
+            pass
                 
         vx, vy, x, y = result
         vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)

@@ -295,7 +295,7 @@ async def run():
         #        continue
 
         ids = detect_id(forward_camera.capture_array())
-        print(len(ids))
+        print(str(ids))
         if 23 in ids:
             print("Tag detected!")
             TAKEOFF_ALTITUDE = 2.0

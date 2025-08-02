@@ -343,7 +343,7 @@ def detect_id(image):
     # detector = aruco.ArucoDetector(aruco_dict, detectorParams)
     # corners, ids, rejected = detector.detectMarkers(image)
 
-    corners, ids, _ = cv2.aruco.detectMarkers(
+    corners, ids, _ = aruco.detectMarkers(
                image, aruco_dict, parameters=aruco.DetectorParameters_create()
 
            )

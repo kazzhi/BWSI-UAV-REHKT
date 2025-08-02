@@ -251,15 +251,15 @@ async def run():
     # await drone.action.takeoff()
     # await asyncio.sleep(TAKEOFF_TIME) # Pause for 8 seconds...
 
-    print("Setting position setpoint for offboard start...")
-    await drone.offboard.set_velocity_body(
-        VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=-0.1, yawspeed_deg_s=0.0)
-    )
-    try:
-        await drone.offboard.start()
-    except OffboardError as e:
-        print(e)
-        drone.action.kill()
+    # print("Setting position setpoint for offboard start...")
+    # await drone.offboard.set_velocity_body(
+    #     VelocityBodyYawspeed(forward_m_s=0.0, right_m_s=0.0, down_m_s=-0.1, yawspeed_deg_s=0.0)
+    # )
+    # try:
+    #     await drone.offboard.start()
+    # except OffboardError as e:
+    #     print(e)
+    #     drone.action.kill()
 
     altitude_task = asyncio.create_task(subscribe_position(drone))
 
@@ -330,8 +330,7 @@ def detect_id(image):
 
     image = cv2.convertScaleAbs(image, alpha=1.0, beta=-50)
     image = cv2.erode(image, kernel)
-
-
+    
     aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_5X5_100)
 
     detectorParams = aruco.DetectorParameters()

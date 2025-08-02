@@ -54,6 +54,13 @@ double rightInput, rightOutput, rightSetpoint = 0;
 const int leftEncoderPin = A0;
 const int rightEncoderPin = A1;
 
+// analog in pins from pi gpio out
+const int latchedStatePin = A8;
+const int unlatchedStatePin = A6;
+const int latchedDrivingStatePin = A4;
+
+const int HIGH_THRESHOLD = 600;  // Anything above this is HIGH
+
 // Gear ratio and wheel properties
 const float gearRatio = 1.0;                                                  // 1 spin of the encoder results in 3 spins of the wheel
 const float wheelDiameterInches = 2.75591;                                      // Wheel diameter in inches
@@ -259,6 +266,15 @@ switch (stateSequence[currentStateIndex]) {
       stop();
       break;
 }
+
+  int latchedPinValue = analogRead(latchedStatePin);
+  int unlatchedPinValue = analogRead(unlatchedStatePin);
+  int latchedDrivingPinValue = analogRead(latchedDrivingStatePin);
+
+  bool latchedState = latchedPinValue > HIGH_THRESHOLD;
+  bool unlatchedState = unlatchedPinValue > HIGH_THRESHOLD;
+  bool latchedDrivingState = latchedDrivingPinValue > HIGH_THRESHOLD;
+
   // Variables to store power values
   double leftPower = 0.0;
   double rightPower = 0.0;

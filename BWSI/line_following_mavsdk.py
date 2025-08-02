@@ -281,7 +281,7 @@ async def run():
 
     takeoff_count = 0
 
-    while takeoff_count < 100: # five seconds !!
+    while takeoff_count < 80: # five seconds !!
         print("\nTaking off!!! :3")
 
         vel_z = get_z_velocity()

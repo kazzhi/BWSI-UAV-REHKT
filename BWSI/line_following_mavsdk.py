@@ -39,14 +39,14 @@ forward_camera = None
 LOOP_TIME = 0.05
 
 #PID Constants
-KP_X = 0.001
-KP_Y = 0.001
-KP_Z = 0.75
+KP_X = 0.002
+KP_Y = 0.002
+KP_Z = 3.5
 KP_W_Z = 3.5
 
-KD_X = 0.00015
-KD_Y = 0.00015
-KD_Z = 0.015
+KD_X = 0.0003
+KD_Y = 0.0003
+KD_Z = 0.1
 KD_W_Z = 0.2
 
 prev_x_error = 0
@@ -305,15 +305,15 @@ async def run():
         ids = detect_id(forward_camera.capture_array())
         print(str(ids))
         for id in ids:
-            if id in target_ids:
+            if id in tag_dict:
                 print(f"Found target {id}!")
-                target_height = target_ids[id]
-                count = 0 # reset count 
-        count += 1 
+                target_height = tag_dict[id]
+                # count = 0 # reset count 
+        #count += 1 
 
-        if count >= height_timeout: # 10 seconds after tag is no longer seen 
+       # if count >= height_timeout: # 10 seconds after tag is no longer seen 
             # target_height = TAKEOFF_ALTITUDE
-            pass
+        #    pass
                 
         vx, vy, x, y = result
         vel_x, vel_y, yaw_s = get_velocity(vx, vy, x, y)

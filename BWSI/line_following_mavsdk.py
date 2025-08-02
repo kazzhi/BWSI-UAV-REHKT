@@ -29,7 +29,8 @@ CENTER = np.array([IMAGE_WIDTH//2, IMAGE_HEIGHT//2]) # Center of the image frame
 EXTEND = 100 # Number of pixels forward to extrapolate the line
 
 drone = System() # Define the drone system
-camera = None
+down_camera = None
+forward_camera = None
 
 LOOP_TIME = 0.05
 
@@ -104,7 +105,7 @@ returns none if no line is detected
 """
 def detect_line():
     try:
-        image = camera.capture_array()
+        image = down_camera.capture_array()
         image = cv2.dilate(image, KERNEL_D, iterations = 1)
         image = cv2.erode(image, KERNEL_E, iterations = 1)
         mask = cv2.inRange(image, LOW, HI)
@@ -201,13 +202,18 @@ Initiate Picamera
 Maybe use mavlink camera?
 """
 def initiate_cam():
-    global camera
+    global down_camera, forward_camera
     try:
-        camera = Picamera2(1)
+        down_camera = Picamera2(1)
+        forward_camera = Picamera2(0)
         # Change config if needed for cv2 processing
-        camera_config = camera.create_still_configuration(main={"size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
-        camera.configure(camera_config)
-        camera.start()
+        camera_config = down_camera.create_still_configuration(main={"size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
+        down_camera.configure(camera_config)
+        down_camera.start()
+
+        camera_config = forward_camera.create_still_configuration(main={"size": (IMAGE_WIDTH, IMAGE_HEIGHT)}) # Adjust resolution as needed
+        forward_camera.configure(camera_config)
+        forward_camera.start()
         time.sleep(0.5)
         print("Camera initialized!")
     except Exception as e:
@@ -222,7 +228,7 @@ Continuously calls get_velocity to determine setpoints
 First does roll/pitch then does yaw
 """
 async def run():
-    global TAKEOFF_ALTITUDE
+    global TAKEOFF_ALTITUDE, forward_camera
     await drone.connect(system_address="serial:///dev/ttyAMA0:57600")
     print("Waiting for drone to connect...")
 
@@ -286,7 +292,7 @@ async def run():
             else:
                continue
 
-        ids = detect_id(camera.capture_array())
+        ids = detect_id(forward_camera.capture_array())
 
         if 97 in ids:
             TAKEOFF_ALTITUDE = 2.0

@@ -16,12 +16,12 @@ from picamera2 import Picamera2
 ###########
 #CONSTANTS#
 ###########
-MAX_YAW_SPEED = 90.0 # degrees per second, positive facking up
+MAX_YAW_SPEED = 0.0 # degrees per second, positive facking up
 MAX_X_SPEED = 0.5 # meters per second, forward
 MAX_Y_SPEED = 0.5 # meters per second, right
-MAX_Z_SPEED = 0.5 # meters per second, down
+MAX_Z_SPEED = 1.0 # meters per second, down
 
-TAKEOFF_ALTITUDE = -1.0 # meters
+TAKEOFF_ALTITUDE = 1.0 # meters
 TAKEOFF_TIME = 8
 IMAGE_WIDTH, IMAGE_HEIGHT = 640, 360 # pixels
 
@@ -36,12 +36,12 @@ LOOP_TIME = 0.05
 #PID Constants
 KP_X = 0.001
 KP_Y = 0.001
-KP_Z = 0.001
+KP_Z = 0.75
 KP_W_Z = 3.5
 
 KD_X = 0.00015
 KD_Y = 0.00015
-KD_Z = 0.00015
+KD_Z = 0.015
 KD_W_Z = 0.2
 
 prev_x_error = 0
@@ -67,7 +67,7 @@ DETECT = 0
 
 async def subscribe_position(drone):
     """Subscribes to position updates and updates the global variable."""
-    global latest_altitude
+    global latest_altitude, first_altitude
     async for altitude in drone.telemetry.altitude():
         print("altitude updated!!")
         if first_altitude is None:
@@ -193,7 +193,7 @@ def get_z_velocity():
 
     vz = min(max(vz,-MAX_Z_SPEED), MAX_Z_SPEED)
 
-    return vz
+    return -vz
 
 """
 Initiate Picamera
@@ -263,7 +263,7 @@ async def run():
         if not result:
             DETECT += 1
             print("Unable to detect line")
-            if DETECT >= 50:
+            if DETECT >= 500000:
                break
             else:
                continue

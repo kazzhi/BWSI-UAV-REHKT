@@ -50,6 +50,7 @@ prev_z_error = 0
 prev_angle_error = 0
 
 latest_altitude = None
+first_altitude = None
 
 LOW = np.array([250, 250, 250])  # Lower image thresholding bound
 HI = np.array([255, 255, 255])   # Upper image thresholding bound
@@ -69,6 +70,8 @@ async def subscribe_position(drone):
     global latest_altitude
     async for altitude in drone.telemetry.altitude():
         print("altitude updated!!")
+        if first_altitude is None:
+            first_altitude = altitude
         latest_altitude = altitude
 
 def pid(error, angle_error):
@@ -180,9 +183,9 @@ def get_z_velocity():
     if latest_altitude is None:
         return 0.0
         print("no altitude !! sadge")
-    error = TAKEOFF_ALTITUDE - latest_altitude.altitude_terrain_m
+    error = TAKEOFF_ALTITUDE - (latest_altitude.altitude_relative_m-first_altitude.altitude_relative_m)
 
-    print(f"Z error: {error}, rel. alt:  {latest_altitude.altitude_relative_m}")
+    print(f"Z error: {error}, alt:  {latest_altitude.altitude_relative_m-first_altitude.altitude_relative_m}")
 
     vz = KP_Z * error
     vz += KD_Z * (error-prev_z_error)/LOOP_TIME
